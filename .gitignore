@@ -6,7 +6,7 @@ modules/__pycache__
 
 # Do not track results
 results/
-data/
+# data/
 
 # C extensions
 *.so

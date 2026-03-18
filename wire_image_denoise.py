@@ -146,8 +146,8 @@ if __name__ == '__main__':
         
         imrec = rec[0, ...].reshape(H, W, 3).detach().cpu().numpy()
             
-        cv2.imshow('Reconstruction', imrec[..., ::-1])            
-        cv2.waitKey(1)
+        cv2.imwrite('./Reconstruction.png', imrec[..., ::-1])            
+        # cv2.waitKey(1)
     
         if (mse_array[epoch] < best_mse) or (epoch == 0):
             best_mse = mse_array[epoch]
