@@ -99,6 +99,7 @@ if __name__ == '__main__':
     coords = torch.hstack((X.reshape(-1, 1), Y.reshape(-1, 1)))[None, ...]
     
     gt = torch.tensor(im).cuda().reshape(H*W, 3)[None, ...]
+    # print(f"{gt.min()=}, {gt.max()=}")
     gt_noisy = torch.tensor(im_noisy).cuda().reshape(H*W, 3)[None, ...]
     
     mse_array = torch.zeros(niters, device='cuda')
@@ -145,8 +146,11 @@ if __name__ == '__main__':
         scheduler.step()
         
         imrec = rec[0, ...].reshape(H, W, 3).detach().cpu().numpy()
-            
-        cv2.imwrite('./Reconstruction.png', imrec[..., ::-1])            
+        imrec = np.clip(imrec, 0., 1.)
+        # print(f"{imrec.min()=}, {imrec.max()=}")
+        # cv2.imwrite('./Reconstruction.png', imrec[..., ::-1])  
+        plt.imsave('./Reconstruction.png', imrec)    
+        # break      
         # cv2.waitKey(1)
     
         if (mse_array[epoch] < best_mse) or (epoch == 0):
@@ -164,6 +168,6 @@ if __name__ == '__main__':
              'time_array': time_array.detach().cpu().numpy()}
     
     os.makedirs('results/denoising', exist_ok=True)
-    io.savemat('results/denoising/%s.mat'%nonlin, mdict)
+    io.savemat('results/denoising/%s.mat'%nonlin, mdict)?
 
     print('Best PSNR: %.2f dB'%utils.psnr(im, best_img))
