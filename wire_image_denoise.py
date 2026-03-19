@@ -22,6 +22,7 @@ from pytorch_msssim import ssim
 
 from modules import models
 from modules import utils
+import math
 
 if __name__ == '__main__':
     nonlin = 'wire'            # type of nonlinearity, 'wire', 'siren', 'mfn', 'relu', 'posenc', 'gauss'
@@ -36,12 +37,13 @@ if __name__ == '__main__':
     
     # Gabor filter constants.
     # We suggest omega0 = 4 and sigma0 = 4 for denoising, and omega0=20, sigma0=30 for image representation
-    omega0 = 5.0           # Frequency of sinusoid
-    sigma0 = 5.0           # Sigma of Gaussian
+    omega0 = 15.           # Frequency of sinusoid
+    sigma0 = 2.           # Sigma of Gaussian
     
     # Network parameters
-    hidden_layers = 2       # Number of hidden layers in the MLP
-    hidden_features = 256   # Number of hidden units per layer
+    # hidden_layers = 2       # Number of hidden layers in the MLP
+    hidden_layers = 6       # Number of hidden layers in the MLP
+    hidden_features = 256*math.sqrt(2)   # Number of hidden units per layer
     maxpoints = 256*256     # Batch size
     
     # Read image and scale. A scale of 0.5 for parrot image ensures that it
@@ -111,8 +113,20 @@ if __name__ == '__main__':
     
     rec = torch.zeros_like(gt)
     
+    
+    
+    print(f"{coords.shape=}")
+    with torch.no_grad():
+        model.cpu()
+        init_values = model(coords)
+        different_values = set(map(lambda x: (x[0].item(), x[1].item(), x[2].item()), init_values[0, :]))
+        print(f"{len(different_values)=}", flush=True)
+        del init_values, different_values
+        model.cuda()
+    
     tbar = tqdm(range(niters))
     init_time = time.time()
+
     for epoch in tbar:
         indices = torch.randperm(H*W)
         
@@ -168,6 +182,6 @@ if __name__ == '__main__':
              'time_array': time_array.detach().cpu().numpy()}
     
     os.makedirs('results/denoising', exist_ok=True)
-    io.savemat('results/denoising/%s.mat'%nonlin, mdict)?
+    io.savemat('results/denoising/%s.mat'%nonlin, mdict)
 
     print('Best PSNR: %.2f dB'%utils.psnr(im, best_img))
